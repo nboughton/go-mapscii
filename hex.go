@@ -2,7 +2,8 @@ package mapscii
 
 import "strings"
 
-var hexTmpl = `##\__________/##
+var (
+	hexTmpl = `##\__________/##
 ##/##########\##
 #/############\#
 /##############\
@@ -10,8 +11,11 @@ var hexTmpl = `##\__________/##
 #\############/#
 ##\__________/##`
 
+	offset = 5
+)
+
 type hexCell struct {
-	text     [][]string
+	tmpl     [][]string
 	widthTop int
 	widthMid int
 	height   int
@@ -21,29 +25,29 @@ type hexCell struct {
 
 func newHexCell(row, col int) *hexCell {
 	c := &hexCell{
-		text:    ParseCellTmpl(hexTmpl),
+		tmpl:    ParseCellTmpl(hexTmpl),
 		crdsRow: 1,
 		crdsCol: 3,
 	}
 
-	c.height = len(c.text)
-	c.widthTop = (len(c.text[0]) / 3) * 2
-	c.widthMid = len(c.text[0])
-	c.setCrds(row, col)
+	c.height = len(c.tmpl)
+	c.widthTop = (len(c.tmpl[0]) / 3) * 2
+	c.widthMid = len(c.tmpl[0])
+	c.setCrds(row, col, false, false)
 
 	return c
 }
 
-func (c *hexCell) setCrds(row, col int) {
-	for i, sub := range genCrdText(row, col) {
-		c.text[c.crdsRow][c.crdsCol+i] = string(sub)
+func (c *hexCell) setCrds(row, col int, rowAlpha, colAlpha bool) {
+	for i, sub := range CoordText(row, col, rowAlpha, colAlpha) {
+		c.tmpl[c.crdsRow][c.crdsCol+i] = string(sub)
 	}
 }
 
-// Map represents a 2 dimensional string matrix of the template
+// HexMap
 type HexMap [][]string
 
-// NewHexMap generates a hex template so that text can be superimposed on it
+// NewHexMap generates a hex template so that tmpl can be superimposed on it
 func NewHexMap(height, width int) HexMap {
 	var (
 		cl    = newHexCell(0, 0) // Use a cell as a reference
@@ -85,7 +89,7 @@ func (m HexMap) emptyCell(row, col, rLabel, cLabel int) HexMap {
 	r, c, cl := row, col, newHexCell(rLabel, cLabel)
 
 	for cellRow := 0; cellRow < cl.height; cellRow++ {
-		for _, char := range cl.text[cellRow] {
+		for _, char := range cl.tmpl[cellRow] {
 			if r >= len(m) || c >= len(m[r]) { // Bounds check matrices references
 				return m
 			}

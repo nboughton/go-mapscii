@@ -11,10 +11,6 @@ import (
 
 type colourFunc func(string, ...interface{}) string
 
-var (
-	offset = 5
-)
-
 // Colour funcs
 var (
 	White   = color.WhiteString
@@ -25,32 +21,30 @@ var (
 	Blue    = color.BlueString
 	Cyan    = color.CyanString
 
-	sqTmpl = `______________
-|              |
-|              |
-|              |
-|              |
-|              |
-|______________|`
+	abc = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 )
 
 type Cell interface {
+	Row() int
+	Col() int
 	Width() int
 	Height() int
-	Text() [][]string
+	Tmpl() [][]string
+	SetContent([]string)
 }
 
-// ParseCellTmpl reads a cell template and returns it as a character matrix. Cell templates should use
-// '#' instead of white space as gofmt automatically strips whitespace off the ends of lines.
-/*  For example, the default hex template is declared as follows:
+type Map [][]Cell
+
+/* ParseCellTmpl reads a cell template and returns it as a character matrix. Cell templates should use
+ '#' instead of white space as gofmt automatically strips whitespace off the ends of lines.
+  For example, the default hex template is declared as follows:
 var hexTmpl = `##\__________/##
 ##/##########\##
 #/############\#
 /##############\
 \##############/
 #\############/#
-##\__________/##`
-*/
+##\__________/##` */
 func ParseCellTmpl(s string) [][]string {
 	var out [][]string
 
@@ -68,7 +62,11 @@ func ParseCellTmpl(s string) [][]string {
 	return out
 }
 
-func genCrdText(row, col int) string {
+// Generate coordinate identifer text. If rowAlpha or colAlpha is true
+// the row/col identifer returned will be in the form of a letter or letters
+// where every number over 26 increments to another cycle of the alphabet.
+// I.e 1 = a, 3 = c, 27 = aa
+func CoordText(row, col int, rowAlpha, colAlpha bool) string {
 	rStr, cStr := strconv.Itoa(row), strconv.Itoa(col)
 	if row < 10 {
 		rStr = "0" + rStr
